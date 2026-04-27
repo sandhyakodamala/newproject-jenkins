@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Élue | Timeless E‑Commerce</title>
+    <title>Élue | Timeless E‑Commerce with Wishlist</title>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Syne:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -138,6 +138,9 @@
             color: #2d3e45;
             transition: color 0.2s;
             cursor: pointer;
+            background: none;
+            border: none;
+            position: relative;
         }
 
         .cart {
@@ -145,7 +148,7 @@
             display: flex;
         }
 
-        .cart-count {
+        .cart-count, .wishlist-count-badge {
             position: absolute;
             top: -8px;
             right: -12px;
@@ -159,6 +162,12 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .wishlist-count-badge {
+            right: -10px;
+            top: -8px;
+            background: #c2410c;
         }
 
         /* mobile menu toggle */
@@ -380,15 +389,99 @@
             background: #e3edf4;
         }
 
-        .wishlist {
+        .wishlist-btn {
             background: transparent;
             border: 1px solid #e2edf2;
             border-radius: 40px;
             width: 40px;
             cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #8ba0b0;
         }
 
-        /* Deals section – clean card */
+        .wishlist-btn.active {
+            color: #e11d48;
+            border-color: #ffdce5;
+            background: #fff0f3;
+        }
+
+        .wishlist-btn:hover {
+            border-color: #cbd5e1;
+            transform: scale(1.02);
+        }
+
+        /* Wishlist panel */
+        .wishlist-panel {
+            position: fixed;
+            top: 0;
+            right: -380px;
+            width: 360px;
+            height: 100vh;
+            background: white;
+            box-shadow: -8px 0 30px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+            transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #eef2f5;
+        }
+
+        .wishlist-panel.open {
+            right: 0;
+        }
+
+        .wishlist-header {
+            padding: 24px;
+            border-bottom: 1px solid #ecf3f8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wishlist-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .wishlist-item {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0f4f9;
+        }
+
+        .wishlist-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+        .wishlist-item-info {
+            flex: 1;
+        }
+
+        .remove-wish {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #b91c1c;
+            font-size: 1rem;
+        }
+
+        .empty-wish {
+            text-align: center;
+            padding: 32px;
+            color: #8499b4;
+        }
+
+        /* Deal section */
         .deal-card {
             display: flex;
             flex-wrap: wrap;
@@ -470,38 +563,17 @@
         }
 
         @media (max-width: 900px) {
-            .nav-links {
-                display: none;
-            }
-
-            .mobile-toggle {
-                display: block;
-            }
-
-            .search-wrapper input {
-                width: 140px;
-            }
-
-            .hero h1 {
-                font-size: 2.2rem;
-            }
+            .nav-links { display: none; }
+            .mobile-toggle { display: block; }
+            .search-wrapper input { width: 140px; }
+            .hero h1 { font-size: 2.2rem; }
+            .wishlist-panel { width: 100%; right: -100%; }
         }
-
         @media (max-width: 600px) {
-            .container {
-                padding: 0 20px;
-            }
-
-            .deal-content {
-                padding: 24px;
-            }
-
-            .newsletter input {
-                width: 100%;
-                margin-bottom: 12px;
-            }
+            .container { padding: 0 20px; }
+            .deal-content { padding: 24px; }
+            .newsletter input { width: 100%; margin-bottom: 12px; }
         }
-
         .badge-new {
             background: #2C7DA0;
             color: white;
@@ -535,7 +607,10 @@
                     <button id="searchTrigger"><i class="fas fa-search"></i></button>
                 </div>
                 <div class="header-actions">
-                    <i class="far fa-heart icon-btn"></i>
+                    <button class="icon-btn" id="openWishlistBtn" title="My Wishlist">
+                        <i class="far fa-heart"></i>
+                        <span class="wishlist-count-badge" id="wishlistCounter">0</span>
+                    </button>
                     <div class="cart">
                         <i class="fas fa-bag-shopping icon-btn"></i>
                         <span class="cart-count" id="cartCounter">0</span>
@@ -550,17 +625,28 @@
                 <a href="#">Home</a>
                 <a href="#" id="mobileCatLink">Categories</a>
                 <a href="#dealsSection">Deals</a>
-                <a href="#">Account</a>
+                <a href="#" id="mobileWishlistLink">Wishlist</a>
             </div>
         </div>
     </header>
+
+    <!-- Wishlist Sidebar -->
+    <div class="wishlist-panel" id="wishlistSidebar">
+        <div class="wishlist-header">
+            <h3 style="font-family: Syne;"><i class="far fa-heart"></i> My Wishlist</h3>
+            <button id="closeWishlistBtn" style="background: none; border: none; font-size: 1.4rem; cursor: pointer;">&times;</button>
+        </div>
+        <div class="wishlist-items" id="wishlistItemsContainer">
+            <div class="empty-wish">✨ Your wishlist is empty. <br> Add items you love!</div>
+        </div>
+    </div>
 
     <main>
         <!-- Hero -->
         <section class="hero">
             <div class="container hero-content">
                 <h1>Where elegance<br>meets everyday.</h1>
-                <p>Discover timeless designs, curated quality, and exclusive drops — redefining modern e‑commerce.</p>
+                <p>Discover timeless designs, curated quality, and exclusive drops — heart your favorites.</p>
                 <div class="btn-group">
                     <button class="btn btn-primary" id="shopNowHero">Shop collection <i class="fas fa-arrow-right"></i></button>
                     <button class="btn btn-outline" id="exploreDealsHero">Flash sale</button>
@@ -589,7 +675,7 @@
             <div class="products-grid" id="productsGrid"></div>
         </section>
 
-        <!-- Flash Sale + Countdown -->
+        <!-- Flash Sale -->
         <section id="dealsSection" class="container section">
             <div>
                 <h2 class="section-title">Flash sale ⚡</h2>
@@ -649,8 +735,7 @@
     </footer>
 
     <script>
-        // --------------------------------------------------------------
-        // enhanced product & categories data
+        // ----- DATA -----
         const CATEGORIES = [
             { id: 'audio', name: 'Audio', icon: 'fas fa-headphones' },
             { id: 'wearables', name: 'Wearables', icon: 'fas fa-clock' },
@@ -669,20 +754,79 @@
             { id: 106, title: 'Fujifilm X-T5', price: 1699, oldPrice: 1899, rating: 5, reviews: 44, img: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80', category: 'cameras', badge: 'hot' }
         ];
 
+        // Wishlist & Cart state
+        let wishlistIds = new Set(); 
         let cartItemsCount = 0;
+
+        // DOM elements
         const cartCounterSpan = document.getElementById('cartCounter');
+        const wishlistCounterSpan = document.getElementById('wishlistCounter');
         const productsContainer = document.getElementById('productsGrid');
         const categoriesContainer = document.getElementById('categoriesGrid');
+        const wishlistSidebar = document.getElementById('wishlistSidebar');
+        const wishlistItemsContainer = document.getElementById('wishlistItemsContainer');
 
-        function updateCartDisplay() {
-            cartCounterSpan.innerText = cartItemsCount;
+        // Helper: update all wishlist UI (counters, buttons state, sidebar)
+        function updateWishlistUI() {
+            wishlistCounterSpan.innerText = wishlistIds.size;
+            // update each product's heart button active state
+            document.querySelectorAll('.wishlist-btn').forEach(btn => {
+                const pid = parseInt(btn.getAttribute('data-pid'));
+                if (wishlistIds.has(pid)) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '<i class="fas fa-heart"></i>';
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<i class="far fa-heart"></i>';
+                }
+            });
+            renderWishlistSidebar();
         }
 
+        function renderWishlistSidebar() {
+            const wishlistProducts = PRODUCTS.filter(p => wishlistIds.has(p.id));
+            if (wishlistProducts.length === 0) {
+                wishlistItemsContainer.innerHTML = '<div class="empty-wish">🤍 Your wishlist is empty. <br> Add items you love!</div>';
+                return;
+            }
+            wishlistItemsContainer.innerHTML = wishlistProducts.map(p => `
+                <div class="wishlist-item" data-wishid="${p.id}">
+                    <img src="${p.img}" alt="${p.title}" loading="lazy">
+                    <div class="wishlist-item-info">
+                        <div style="font-weight:600;">${escapeHtml(p.title)}</div>
+                        <div class="current-price" style="font-size:0.9rem;">$${p.price}</div>
+                    </div>
+                    <button class="remove-wish" data-removeid="${p.id}" aria-label="Remove"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `).join('');
+            document.querySelectorAll('.remove-wish').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(btn.getAttribute('data-removeid'));
+                    wishlistIds.delete(id);
+                    updateWishlistUI();
+                });
+            });
+        }
+
+        function addToWishlist(productId) {
+            if (wishlistIds.has(productId)) {
+                wishlistIds.delete(productId);
+            } else {
+                wishlistIds.add(productId);
+            }
+            updateWishlistUI();
+        }
+
+        function toggleWishlistFromButton(pid) {
+            addToWishlist(pid);
+        }
+
+        // Cart logic
         function addToCart(productId) {
             const product = PRODUCTS.find(p => p.id === productId);
             if (product) {
                 cartItemsCount++;
-                updateCartDisplay();
+                cartCounterSpan.innerText = cartItemsCount;
                 const btn = document.querySelector(`.add-cart[data-pid="${productId}"]`);
                 if (btn) {
                     const original = btn.innerHTML;
@@ -692,12 +836,16 @@
             }
         }
 
+        // Render products
         function renderProducts(filteredArray = PRODUCTS) {
             productsContainer.innerHTML = '';
             filteredArray.forEach(p => {
                 const stars = '★'.repeat(Math.floor(p.rating)) + (p.rating % 1 >= 0.5 ? '½' : '');
                 const oldPriceHtml = p.oldPrice ? `<span class="old-price">$${p.oldPrice}</span>` : '';
                 const badgeHtml = p.badge ? `<span style="background:#eef2f8; font-size:0.7rem; padding:3px 12px; border-radius:20px;">${p.badge}</span>` : '';
+                const isWishlisted = wishlistIds.has(p.id);
+                const heartIcon = isWishlisted ? '<i class="fas fa-heart"></i>' : '<i class="far fa-heart"></i>';
+                const activeClass = isWishlisted ? 'active' : '';
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.innerHTML = `
@@ -712,15 +860,23 @@
                     </div>
                     <div class="product-actions">
                         <button class="add-cart" data-pid="${p.id}"><i class="fas fa-bag-shopping"></i>  Add to cart</button>
-                        <button class="wishlist" aria-label="wishlist"><i class="far fa-heart"></i></button>
+                        <button class="wishlist-btn ${activeClass}" data-pid="${p.id}" aria-label="wishlist">${heartIcon}</button>
                     </div>
                 `;
                 productsContainer.appendChild(card);
             });
+            // attach event listeners after render
             document.querySelectorAll('.add-cart').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const id = parseInt(btn.getAttribute('data-pid'));
                     addToCart(id);
+                });
+            });
+            document.querySelectorAll('.wishlist-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const pid = parseInt(btn.getAttribute('data-pid'));
+                    toggleWishlistFromButton(pid);
                 });
             });
         }
@@ -750,7 +906,7 @@
             renderProducts(filtered);
         }
 
-        // --- testimonial data ---
+        // testimonials
         const testimonialsData = [
             { name: "Sophia Carter", text: "The clean UI and fast delivery blew my mind. Coming back for more.", stars: 5 },
             { name: "James Wu", text: "Minimal, intuitive and great product curation. Love the flash deals!", stars: 5 },
@@ -758,17 +914,18 @@
         ];
         function renderTestimonials() {
             const container = document.getElementById('testimonialsList');
-            if (!container) return;
-            container.innerHTML = testimonialsData.map(t => `
-                <div class="testimonial-card">
-                    <div class="rating" style="margin-bottom:12px;">${'★'.repeat(t.stars)}</div>
-                    <p style="font-style:normal;">“${t.text}”</p>
-                    <div style="margin-top:16px; font-weight:600;">${t.name}</div>
-                </div>
-            `).join('');
+            if (container) {
+                container.innerHTML = testimonialsData.map(t => `
+                    <div class="testimonial-card">
+                        <div class="rating" style="margin-bottom:12px;">${'★'.repeat(t.stars)}</div>
+                        <p style="font-style:normal;">“${t.text}”</p>
+                        <div style="margin-top:16px; font-weight:600;">${t.name}</div>
+                    </div>
+                `).join('');
+            }
         }
 
-        // countdown
+        // Countdown
         function initDealTimer() {
             const targetDate = new Date();
             targetDate.setDate(targetDate.getDate() + 1);
@@ -792,7 +949,14 @@
             tick(); setInterval(tick, 1000);
         }
 
-        // --- events & mobile menu ---
+        // Event bindings
+        document.getElementById('openWishlistBtn')?.addEventListener('click', () => wishlistSidebar.classList.add('open'));
+        document.getElementById('closeWishlistBtn')?.addEventListener('click', () => wishlistSidebar.classList.remove('open'));
+        document.getElementById('mobileWishlistLink')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            wishlistSidebar.classList.add('open');
+            document.getElementById('mobilePanel').style.display = 'none';
+        });
         document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
             const panel = document.getElementById('mobilePanel');
             panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
@@ -801,7 +965,7 @@
         document.getElementById('globalSearch')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') filterProductByQuery(e.target.value); });
         document.getElementById('shopNowHero')?.addEventListener('click', () => document.getElementById('productsGrid').scrollIntoView({ behavior: 'smooth' }));
         document.getElementById('exploreDealsHero')?.addEventListener('click', () => document.getElementById('dealsSection').scrollIntoView({ behavior: 'smooth' }));
-        document.getElementById('flashDealBtn')?.addEventListener('click', () => { cartItemsCount++; updateCartDisplay(); alert('MacBook Air added to cart (demo)'); });
+        document.getElementById('flashDealBtn')?.addEventListener('click', () => { cartItemsCount++; cartCounterSpan.innerText = cartItemsCount; alert('MacBook Air added to cart (demo)'); });
         document.getElementById('newsletterForm')?.addEventListener('submit', (e) => {
             e.preventDefault();
             const emailInput = document.getElementById('subEmail');
@@ -815,13 +979,16 @@
         });
         document.getElementById('catScrollBtn')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('categoriesSection').scrollIntoView({ behavior: 'smooth' }); });
         document.getElementById('mobileCatLink')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('categoriesSection').scrollIntoView({ behavior: 'smooth' }); document.getElementById('mobilePanel').style.display = 'none'; });
-
         document.getElementById('currentYear').innerText = new Date().getFullYear();
+
+        // Initialization
         renderCategories();
         renderProducts(PRODUCTS);
         renderTestimonials();
         initDealTimer();
-        updateCartDisplay();
+        updateWishlistUI();
+        cartCounterSpan.innerText = 0;
     </script>
 </body>
+
 </html>
